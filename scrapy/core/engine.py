@@ -49,14 +49,14 @@ logger = logging.getLogger(__name__)
 class Slot:
     def __init__(
         self,
-        start_requests: Iterable[Request],
+        start_requests: Iterable[Optional[Request]],
         close_if_idle: bool,
         nextcall: CallLaterOnce,
         scheduler: "BaseScheduler",
     ) -> None:
         self.closing: Optional[Deferred] = None
         self.inprogress: Set[Request] = set()
-        self.start_requests: Optional[Iterator[Request]] = iter(start_requests)
+        self.start_requests: Optional[Iterator[Optional[Request]]] = iter(start_requests)
         self.close_if_idle: bool = close_if_idle
         self.nextcall: CallLaterOnce = nextcall
         self.scheduler: "BaseScheduler" = scheduler
@@ -381,7 +381,7 @@ class ExecutionEngine:
 
     @inlineCallbacks
     def open_spider(
-        self, spider: Spider, start_requests: Iterable = (), close_if_idle: bool = True
+        self, spider: Spider, start_requests: Iterable[Optional[Request]] = (), close_if_idle: bool = True
     ) -> Generator[Deferred, Any, None]:
         if self.slot is not None:
             raise RuntimeError(f"No free spider slot when opening {spider.name!r}")
