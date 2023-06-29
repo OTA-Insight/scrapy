@@ -29,7 +29,7 @@ from twisted.python.failure import Failure
 from scrapy import signals
 from scrapy.core.downloader import Downloader
 from scrapy.core.scraper import Scraper
-from scrapy.exceptions import CloseSpider, DontCloseSpider, ScrapyDeprecationWarning
+from scrapy.exceptions import CloseSpider, DontCloseSpider, ScrapyDeprecationWarning, NoneRequest
 from scrapy.http import Request, Response
 from scrapy.logformatter import LogFormatter
 from scrapy.settings import BaseSettings, Settings
@@ -180,6 +180,10 @@ class ExecutionEngine:
         if self.slot.start_requests is not None and not self._needs_backout():
             try:
                 request = next(self.slot.start_requests)
+                if request is None:
+                    raise NoneRequest
+            except NoneRequest:
+                pass
             except StopIteration:
                 self.slot.start_requests = None
             except Exception:
