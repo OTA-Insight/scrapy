@@ -245,4 +245,4 @@ def _find_method(obj, func):
             # https://docs.python.org/3/reference/datamodel.html
             if obj_func.__func__ is func.__func__:
                 return name
-    raise ValueError(f"Function {func} is not an instance method in: {obj}")
+    return f"Function {func} is not an instance method in: {obj}"
