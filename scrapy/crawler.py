@@ -70,6 +70,7 @@ class Crawler:
         self.signals: SignalManager = SignalManager(self)
 
         self.stats: StatsCollector = load_object(self.settings["STATS_CLASS"])(self)
+        self.meter_provider: MeterProvider = load_object(self.settings["METER_PROVIDER_CLASS"])(self)
 
         handler = LogCounterHandler(self, level=self.settings.get("LOG_LEVEL"))
         logging.root.addHandler(handler)
