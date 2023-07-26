@@ -23,6 +23,7 @@ from scrapy.exceptions import ScrapyDeprecationWarning
 from scrapy.extension import ExtensionManager
 from scrapy.interfaces import ISpiderLoader
 from scrapy.logformatter import LogFormatter
+from scrapy.meter_providers import MeterProvider
 from scrapy.settings import Settings, overridden_settings
 from scrapy.signalmanager import SignalManager
 from scrapy.statscollectors import StatsCollector
@@ -70,6 +71,7 @@ class Crawler:
         self.signals: SignalManager = SignalManager(self)
 
         self.stats: StatsCollector = load_object(self.settings["STATS_CLASS"])(self)
+        self.meter_provider: MeterProvider = load_object(self.settings["METER_PROVIDER_CLASS"])(self)
 
         handler = LogCounterHandler(self, level=self.settings.get("LOG_LEVEL"))
         logging.root.addHandler(handler)
@@ -117,6 +119,12 @@ class Crawler:
         self.crawling: bool = False
         self.spider: Optional[Spider] = None
         self.engine: Optional[ExecutionEngine] = None
+
+    def labels(self, *args, **kwargs):
+        spider_labels = self.spider.labels(*args, **kwargs) if self.spider else {}
+        return {
+            **spider_labels
+        }
 
     @defer.inlineCallbacks
     def crawl(self, *args, **kwargs):
