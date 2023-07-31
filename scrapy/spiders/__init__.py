@@ -39,6 +39,11 @@ class Spider(object_ref):
         logger = logging.getLogger(self.name)
         return logging.LoggerAdapter(logger, {"spider": self})
 
+    def labels(self, *args, **kwargs):
+        return {
+            'spider': self.name,
+        }
+
     def log(self, message, level=logging.DEBUG, **kw):
         """Log the given message at the given log level
 

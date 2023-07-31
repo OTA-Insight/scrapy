@@ -34,6 +34,7 @@ install_requires = [
     "setuptools",
     "packaging",
     "tldextract",
+    "opentelemetry-api",
     "lxml>=4.3.0",
 ]
 extras_require = {}
