@@ -183,7 +183,7 @@ class ExecutionEngine:
                 if request is None:
                     raise NoneRequest
             except NoneRequest:
-                pass
+                self.signals.send_catch_log(signals.request_is_none, spider=self.spider)
             except StopIteration:
                 self.slot.start_requests = None
             except Exception:
