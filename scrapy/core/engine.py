@@ -29,7 +29,7 @@ from twisted.python.failure import Failure
 from scrapy import signals
 from scrapy.core.downloader import Downloader
 from scrapy.core.scraper import Scraper
-from scrapy.exceptions import CloseSpider, DontCloseSpider, ScrapyDeprecationWarning
+from scrapy.exceptions import CloseSpider, DontCloseSpider, ScrapyDeprecationWarning, NoneRequest
 from scrapy.http import Request, Response
 from scrapy.logformatter import LogFormatter
 from scrapy.settings import BaseSettings, Settings
@@ -49,14 +49,14 @@ logger = logging.getLogger(__name__)
 class Slot:
     def __init__(
         self,
-        start_requests: Iterable[Request],
+        start_requests: Iterable[Optional[Request]],
         close_if_idle: bool,
         nextcall: CallLaterOnce,
         scheduler: "BaseScheduler",
     ) -> None:
         self.closing: Optional[Deferred] = None
         self.inprogress: Set[Request] = set()
-        self.start_requests: Optional[Iterator[Request]] = iter(start_requests)
+        self.start_requests: Optional[Iterator[Optional[Request]]] = iter(start_requests)
         self.close_if_idle: bool = close_if_idle
         self.nextcall: CallLaterOnce = nextcall
         self.scheduler: "BaseScheduler" = scheduler
@@ -180,6 +180,10 @@ class ExecutionEngine:
         if self.slot.start_requests is not None and not self._needs_backout():
             try:
                 request = next(self.slot.start_requests)
+                if request is None:
+                    raise NoneRequest
+            except NoneRequest:
+                self.signals.send_catch_log(signals.request_is_none, spider=self.spider)
             except StopIteration:
                 self.slot.start_requests = None
             except Exception:
@@ -377,7 +381,7 @@ class ExecutionEngine:
 
     @inlineCallbacks
     def open_spider(
-        self, spider: Spider, start_requests: Iterable = (), close_if_idle: bool = True
+        self, spider: Spider, start_requests: Iterable[Optional[Request]] = (), close_if_idle: bool = True
     ) -> Generator[Deferred, Any, None]:
         if self.slot is not None:
             raise RuntimeError(f"No free spider slot when opening {spider.name!r}")

@@ -14,6 +14,12 @@ class NotConfigured(Exception):
     pass
 
 
+class NoneRequest(Exception):
+    """Indicates a None has been given instead of an actual request"""
+
+    pass
+
+
 class _InvalidOutput(TypeError):
     """
     Indicates an invalid value has been returned by a middleware's processing method.

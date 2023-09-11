@@ -6,7 +6,7 @@ See documentation in docs/topics/spiders.rst
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Generator, Optional
 
 from scrapy import signals
 from scrapy.http import Request
@@ -64,7 +64,7 @@ class Spider(object_ref):
         self.settings = crawler.settings
         crawler.signals.connect(self.close, signals.spider_closed)
 
-    def start_requests(self):
+    def start_requests(self) -> Generator[Optional[Request], Any, None]:
         if not self.start_urls and hasattr(self, "start_url"):
             raise AttributeError(
                 "Crawling could not start: 'start_urls' not found "
