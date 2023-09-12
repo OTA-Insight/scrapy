@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-S = TypeVar("S", Spider)
+S = TypeVar("S", bound=Spider)
 
 
 class Crawler(Generic[S]):
