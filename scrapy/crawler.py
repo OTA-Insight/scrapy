@@ -4,7 +4,7 @@ import logging
 import pprint
 import signal
 import warnings
-from typing import TYPE_CHECKING, Optional, Type, Union
+from typing import TYPE_CHECKING, Generic, Optional, Type, TypeVar, Union
 
 from twisted.internet import defer
 from zope.interface.exceptions import DoesNotImplement
@@ -73,7 +73,9 @@ class Crawler(Generic[S]):
         self.signals: SignalManager = SignalManager(self)
 
         self.stats: StatsCollector = load_object(self.settings["STATS_CLASS"])(self)
-        self.meter_provider: MeterProvider = load_object(self.settings["METER_PROVIDER_CLASS"])(self)
+        self.meter_provider: MeterProvider = load_object(
+            self.settings["METER_PROVIDER_CLASS"]
+        )(self)
 
         handler = LogCounterHandler(self, level=self.settings.get("LOG_LEVEL"))
         logging.root.addHandler(handler)
@@ -124,9 +126,7 @@ class Crawler(Generic[S]):
 
     def labels(self, *args, **kwargs):
         spider_labels = self.spider.labels(*args, **kwargs) if self.spider else {}
-        return {
-            **spider_labels
-        }
+        return {**spider_labels}
 
     @defer.inlineCallbacks
     def crawl(self, *args, **kwargs):
