@@ -4,7 +4,7 @@ import logging
 import pprint
 import signal
 import warnings
-from typing import TYPE_CHECKING, Optional, Type, Union
+from typing import TYPE_CHECKING, Generic, Optional, Type, TypeVar, Union
 
 from twisted.internet import defer
 from zope.interface.exceptions import DoesNotImplement
@@ -50,11 +50,13 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+S = TypeVar("S", bound=Spider)
 
-class Crawler:
+
+class Crawler(Generic[S]):
     def __init__(
         self,
-        spidercls: Type[Spider],
+        spidercls: Type[S],
         settings: Union[None, dict, Settings] = None,
         init_reactor: bool = False,
     ):
@@ -64,14 +66,16 @@ class Crawler:
         if isinstance(settings, dict) or settings is None:
             settings = Settings(settings)
 
-        self.spidercls: Type[Spider] = spidercls
+        self.spidercls: Type[S] = spidercls
         self.settings: Settings = settings.copy()
         self.spidercls.update_settings(self.settings)
 
         self.signals: SignalManager = SignalManager(self)
 
         self.stats: StatsCollector = load_object(self.settings["STATS_CLASS"])(self)
-        self.meter_provider: MeterProvider = load_object(self.settings["METER_PROVIDER_CLASS"])(self)
+        self.meter_provider: MeterProvider = load_object(
+            self.settings["METER_PROVIDER_CLASS"]
+        )(self)
 
         handler = LogCounterHandler(self, level=self.settings.get("LOG_LEVEL"))
         logging.root.addHandler(handler)
@@ -117,14 +121,12 @@ class Crawler:
 
         self.settings.freeze()
         self.crawling: bool = False
-        self.spider: Optional[Spider] = None
+        self.spider: Optional[S] = None
         self.engine: Optional[ExecutionEngine] = None
 
     def labels(self, *args, **kwargs):
         spider_labels = self.spider.labels(*args, **kwargs) if self.spider else {}
-        return {
-            **spider_labels
-        }
+        return {**spider_labels}
 
     @defer.inlineCallbacks
     def crawl(self, *args, **kwargs):
