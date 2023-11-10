@@ -62,10 +62,13 @@ class DownloaderMiddlewareManager(MiddlewareManager):
             elif isinstance(response, Request):
                 return response
 
+            updated_request = request
             for method in self.methods["process_response"]:
                 method = cast(Callable, method)
+                updated_request = response.request or updated_request
+                response.request = None
                 response = yield deferred_from_coro(
-                    method(request=request, response=response, spider=spider)
+                    method(request=updated_request, response=response, spider=spider)
                 )
                 if not isinstance(response, (Response, Request)):
                     raise _InvalidOutput(
@@ -74,6 +77,8 @@ class DownloaderMiddlewareManager(MiddlewareManager):
                     )
                 if isinstance(response, Request):
                     return response
+
+            response.request = updated_request
             return response
 
         @inlineCallbacks
