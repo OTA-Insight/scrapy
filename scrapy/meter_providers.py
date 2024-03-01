@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Optional
 
 from opentelemetry.metrics import NoOpMeterProvider, MeterProvider
+from opentelemetry.sdk.metrics.view import View
 
 if TYPE_CHECKING:
     from scrapy.crawler import Crawler
@@ -22,6 +23,13 @@ class MeterProvider(MeterProvider, ABC):
         """
         Use crawler to configure the Meter Provider
         """
+        self._views: list[View] = []
+
+    def add_view(self, view: View):
+        """
+        Supporting adding views dynamically so metric users can do this where they create metrics
+        """
+        self._views.append(view)
 
 class NoOpMeterProvider(NoOpMeterProvider, MeterProvider):
     """
