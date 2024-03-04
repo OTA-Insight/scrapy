@@ -3,7 +3,7 @@ Scrapy extension for collecting otlp metrics
 """
 from abc import ABC, abstractmethod
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from opentelemetry.metrics import NoOpMeterProvider, MeterProvider
 from opentelemetry.sdk.metrics.view import View
@@ -23,6 +23,7 @@ class MeterProvider(MeterProvider, ABC):
         """
         Use crawler to configure the Meter Provider
         """
+        super().__init__()
         self._views: list[View] = []
 
     def add_view(self, view: View):
@@ -35,5 +36,5 @@ class NoOpMeterProvider(NoOpMeterProvider, MeterProvider):
     """
     Wrapper for NoOpMeterProvider so we support passing crawler during init.
     """
-    def __init__(self, crawler: "Optional[Crawler]" = None):
-        super(NoOpMeterProvider).__init__(crawler)
+    def __init__(self, crawler: "Crawler"):
+        super().__init__(crawler)
