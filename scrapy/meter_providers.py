@@ -36,4 +36,4 @@ class NoOpMeterProvider(NoOpMeterProvider, MeterProvider):
     Wrapper for NoOpMeterProvider so we support passing crawler during init.
     """
     def __init__(self, crawler: "Optional[Crawler]" = None):
-        super(NoOpMeterProvider).__init__()
+        super(NoOpMeterProvider).__init__(crawler)
