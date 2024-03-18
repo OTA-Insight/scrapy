@@ -202,11 +202,13 @@ class ExecutionEngine:
     def _needs_backout(self) -> bool:
         assert self.slot is not None  # typing
         assert self.scraper.slot is not None  # typing
+        assert self.spider is not None  # typing
         return (
             not self.running
             or bool(self.slot.closing)
             or self.downloader.needs_backout()
             or self.scraper.slot.needs_backout()
+            or self.spider.needs_backout()
         )
 
     def _next_request_from_scheduler(self) -> Optional[Deferred]:
