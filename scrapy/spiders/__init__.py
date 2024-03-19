@@ -82,6 +82,9 @@ class Spider(object_ref):
             f"{self.__class__.__name__}.parse callback is not defined"
         )
 
+    def needs_backout(self) -> bool:
+        return False
+
     @classmethod
     def update_settings(cls, settings):
         settings.setdict(cls.custom_settings or {}, priority="spider")
