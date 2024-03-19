@@ -124,6 +124,8 @@ EDITOR = "vi"
 if sys.platform == "win32":
     EDITOR = "%s -m idlelib.idle"
 
+ENGINE_HEARTBEAT_INTERVAL = 5
+
 EXTENSIONS = {}
 
 EXTENSIONS_BASE = {

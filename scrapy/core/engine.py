@@ -403,7 +403,7 @@ class ExecutionEngine:
         self.crawler.stats.open_spider(spider)
         yield self.signals.send_catch_log_deferred(signals.spider_opened, spider=spider)
         self.slot.nextcall.schedule()
-        self.slot.heartbeat.start(5)
+        self.slot.heartbeat.start(self.settings.getfloat("ENGINE_HEARTBEAT_INTERVAL", 5))
 
     def _spider_idle(self) -> None:
         """
