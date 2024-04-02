@@ -6,6 +6,7 @@ See documentation in docs/topics/spider-middleware.rst
 import logging
 
 from scrapy.exceptions import IgnoreRequest
+from scrapy.http import Response
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 class HttpError(IgnoreRequest):
     """A non-200 response was filtered"""
 
-    def __init__(self, response, *args, **kwargs):
+    def __init__(self, response: Response, *args, **kwargs):
         self.response = response
         super().__init__(*args, **kwargs)
 

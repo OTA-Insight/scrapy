@@ -28,6 +28,7 @@ from scrapy import signals
 from scrapy.core.downloader import Downloader
 from scrapy.core.scraper import Scraper
 from scrapy.exceptions import CloseSpider, DontCloseSpider
+from scrapy.exceptions import CloseSpider, DontCloseSpider, NoneRequest
 from scrapy.http import Request, Response
 from scrapy.logformatter import LogFormatter
 from scrapy.settings import BaseSettings, Settings
@@ -47,14 +48,14 @@ logger = logging.getLogger(__name__)
 class Slot:
     def __init__(
         self,
-        start_requests: Iterable[Request],
+        start_requests: Iterable[Optional[Request]],
         close_if_idle: bool,
         nextcall: CallLaterOnce,
         scheduler: "BaseScheduler",
     ) -> None:
         self.closing: Optional[Deferred] = None
         self.inprogress: Set[Request] = set()
-        self.start_requests: Optional[Iterator[Request]] = iter(start_requests)
+        self.start_requests: Optional[Iterator[Optional[Request]]] = iter(start_requests)
         self.close_if_idle: bool = close_if_idle
         self.nextcall: CallLaterOnce = nextcall
         self.scheduler: "BaseScheduler" = scheduler
@@ -179,6 +180,10 @@ class ExecutionEngine:
         if self.slot.start_requests is not None and not self._needs_backout():
             try:
                 request = next(self.slot.start_requests)
+                if request is None:
+                    raise NoneRequest
+            except NoneRequest:
+                self.signals.send_catch_log(signals.request_is_none, spider=self.spider)
             except StopIteration:
                 self.slot.start_requests = None
             except Exception:
@@ -197,11 +202,13 @@ class ExecutionEngine:
     def _needs_backout(self) -> bool:
         assert self.slot is not None  # typing
         assert self.scraper.slot is not None  # typing
+        assert self.spider is not None  # typing
         return (
             not self.running
             or bool(self.slot.closing)
             or self.downloader.needs_backout()
             or self.scraper.slot.needs_backout()
+            or self.spider.needs_backout()
         )
 
     def _next_request_from_scheduler(self) -> Optional[Deferred]:
@@ -352,7 +359,7 @@ class ExecutionEngine:
 
     @inlineCallbacks
     def open_spider(
-        self, spider: Spider, start_requests: Iterable = (), close_if_idle: bool = True
+        self, spider: Spider, start_requests: Iterable[Optional[Request]] = (), close_if_idle: bool = True
     ) -> Generator[Deferred, Any, None]:
         if self.slot is not None:
             raise RuntimeError(f"No free spider slot when opening {spider.name!r}")
@@ -373,7 +380,7 @@ class ExecutionEngine:
         self.crawler.stats.open_spider(spider)
         yield self.signals.send_catch_log_deferred(signals.spider_opened, spider=spider)
         self.slot.nextcall.schedule()
-        self.slot.heartbeat.start(5)
+        self.slot.heartbeat.start(self.settings.getfloat("ENGINE_HEARTBEAT_INTERVAL", 5))
 
     def _spider_idle(self) -> None:
         """

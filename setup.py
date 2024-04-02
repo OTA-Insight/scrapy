@@ -23,6 +23,7 @@ install_requires = [
     "tldextract",
     "lxml>=4.4.1",
     "defusedxml>=0.7.1",
+    "opentelemetry-api",
 ]
 extras_require = {
     ':platform_python_implementation == "CPython"': ["PyDispatcher>=2.0.5"],

@@ -4,7 +4,7 @@ import logging
 import pprint
 import signal
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, Generator, Optional, Set, Type, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, Generator, Optional, Set, Type, Union, cast, TypeVar
 
 from twisted.internet.defer import (
     Deferred,
@@ -29,6 +29,7 @@ from scrapy.exceptions import ScrapyDeprecationWarning
 from scrapy.extension import ExtensionManager
 from scrapy.interfaces import ISpiderLoader
 from scrapy.logformatter import LogFormatter
+from scrapy.meter_providers import MeterProvider
 from scrapy.settings import BaseSettings, Settings, overridden_settings
 from scrapy.signalmanager import SignalManager
 from scrapy.statscollectors import StatsCollector
@@ -55,11 +56,13 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+S = TypeVar("S", bound=Spider)
 
-class Crawler:
+
+class Crawler(Generic[S]):
     def __init__(
         self,
-        spidercls: Type[Spider],
+        spidercls: Type[S],
         settings: Union[None, Dict[str, Any], Settings] = None,
         init_reactor: bool = False,
     ):
@@ -69,7 +72,7 @@ class Crawler:
         if isinstance(settings, dict) or settings is None:
             settings = Settings(settings)
 
-        self.spidercls: Type[Spider] = spidercls
+        self.spidercls: Type[S] = spidercls
         self.settings: Settings = settings.copy()
         self.spidercls.update_settings(self.settings)
         self._update_root_log_handler()
@@ -99,6 +102,9 @@ class Crawler:
 
         self.addons.load_settings(self.settings)
         self.stats = load_object(self.settings["STATS_CLASS"])(self)
+        self.meter_provider: MeterProvider = load_object(
+            self.settings["METER_PROVIDER_CLASS"]
+        )(self)
 
         handler = LogCounterHandler(self, level=self.settings.get("LOG_LEVEL"))
         logging.root.addHandler(handler)

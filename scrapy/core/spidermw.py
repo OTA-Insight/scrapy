@@ -310,7 +310,7 @@ class SpiderMiddlewareManager(MiddlewareManager):
         return dfd
 
     def process_start_requests(
-        self, start_requests: Iterable[Request], spider: Spider
+        self, start_requests: Iterable[Optional[Request]], spider: Spider
     ) -> Deferred:
         return self._process_chain("process_start_requests", start_requests, spider)
 

@@ -126,6 +126,8 @@ EDITOR = "vi"
 if sys.platform == "win32":
     EDITOR = "%s -m idlelib.idle"
 
+ENGINE_HEARTBEAT_INTERVAL = 5
+
 EXTENSIONS = {}
 
 EXTENSIONS_BASE = {
@@ -308,6 +310,7 @@ SPIDER_MIDDLEWARES_BASE = {
 
 SPIDER_MODULES = []
 
+METER_PROVIDER_CLASS = "scrapy.meter_providers.NoOpMeterProvider"
 STATS_CLASS = "scrapy.statscollectors.MemoryStatsCollector"
 STATS_DUMP = True
 

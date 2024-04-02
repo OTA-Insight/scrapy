@@ -45,6 +45,11 @@ class Spider(object_ref):
         logger = logging.getLogger(self.name)
         return logging.LoggerAdapter(logger, {"spider": self})
 
+    def labels(self, *args, **kwargs):
+        return {
+            'spider': self.name,
+        }
+
     def log(self, message: Any, level: int = logging.DEBUG, **kw: Any) -> None:
         """Log the given message at the given log level
 
@@ -65,7 +70,7 @@ class Spider(object_ref):
         self.settings = crawler.settings
         crawler.signals.connect(self.close, signals.spider_closed)
 
-    def start_requests(self) -> Iterable[Request]:
+    def start_requests(self) -> Iterable[Optional[Request]]:
         if not self.start_urls and hasattr(self, "start_url"):
             raise AttributeError(
                 "Crawling could not start: 'start_urls' not found "
@@ -82,6 +87,9 @@ class Spider(object_ref):
         raise NotImplementedError(
             f"{self.__class__.__name__}.parse callback is not defined"
         )
+
+    def needs_backout(self) -> bool:
+        return False
 
     @classmethod
     def update_settings(cls, settings: BaseSettings) -> None:
