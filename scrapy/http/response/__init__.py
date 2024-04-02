@@ -91,7 +91,14 @@ class Response(object_ref):
                 f"{type(self).__name__} url must be str, " f"got {type(url).__name__}"
             )
 
-    url = property(_get_url, obsolete_setter(_set_url, "url"))
+    @property
+    def url(self):
+        return self._get_url()
+
+    @url.setter
+    def url(self, value: str):
+        setter = obsolete_setter(self._set_url, "url")
+        setter(self, value)
 
     def _get_body(self):
         return self._body
@@ -108,7 +115,14 @@ class Response(object_ref):
         else:
             self._body = body
 
-    body = property(_get_body, obsolete_setter(_set_body, "body"))
+    @property
+    def body(self):
+        return self._get_body()
+
+    @body.setter
+    def body(self, value: bytes):
+        setter = obsolete_setter(self._set_body, "body")
+        setter(self, value)
 
     def __repr__(self):
         return f"<{self.status} {self.url}>"

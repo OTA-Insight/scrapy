@@ -4,7 +4,19 @@ import logging
 import pprint
 import signal
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, Generator, Optional, Set, Type, Union, cast, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generator,
+    Generic,
+    Optional,
+    Set,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from twisted.internet.defer import (
     Deferred,
@@ -88,7 +100,7 @@ class Crawler(Generic[S]):
         self.stats: Optional[StatsCollector] = None
         self.logformatter: Optional[LogFormatter] = None
         self.request_fingerprinter: Optional[RequestFingerprinter] = None
-        self.spider: Optional[Spider] = None
+        self.spider: Optional[S] = None
         self.engine: Optional[ExecutionEngine] = None
 
     def _update_root_log_handler(self) -> None:
@@ -145,6 +157,10 @@ class Crawler(Generic[S]):
             "Overridden settings:\n%(settings)s", {"settings": pprint.pformat(d)}
         )
 
+    def labels(self, *args, **kwargs):
+        spider_labels = self.spider.labels(*args, **kwargs) if self.spider else {}
+        return {**spider_labels}
+
     @inlineCallbacks
     def crawl(self, *args: Any, **kwargs: Any) -> Generator[Deferred, Any, None]:
         if self.crawling:
@@ -171,7 +187,7 @@ class Crawler(Generic[S]):
                 yield self.engine.close()
             raise
 
-    def _create_spider(self, *args: Any, **kwargs: Any) -> Spider:
+    def _create_spider(self, *args: Any, **kwargs: Any) -> S:
         return self.spidercls.from_crawler(self, *args, **kwargs)
 
     def _create_engine(self) -> ExecutionEngine:

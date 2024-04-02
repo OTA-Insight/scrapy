@@ -27,7 +27,6 @@ from twisted.python.failure import Failure
 from scrapy import signals
 from scrapy.core.downloader import Downloader
 from scrapy.core.scraper import Scraper
-from scrapy.exceptions import CloseSpider, DontCloseSpider
 from scrapy.exceptions import CloseSpider, DontCloseSpider, NoneRequest
 from scrapy.http import Request, Response
 from scrapy.logformatter import LogFormatter
@@ -55,7 +54,9 @@ class Slot:
     ) -> None:
         self.closing: Optional[Deferred] = None
         self.inprogress: Set[Request] = set()
-        self.start_requests: Optional[Iterator[Optional[Request]]] = iter(start_requests)
+        self.start_requests: Optional[Iterator[Optional[Request]]] = iter(
+            start_requests
+        )
         self.close_if_idle: bool = close_if_idle
         self.nextcall: CallLaterOnce = nextcall
         self.scheduler: "BaseScheduler" = scheduler
@@ -359,7 +360,10 @@ class ExecutionEngine:
 
     @inlineCallbacks
     def open_spider(
-        self, spider: Spider, start_requests: Iterable[Optional[Request]] = (), close_if_idle: bool = True
+        self,
+        spider: Spider,
+        start_requests: Iterable[Optional[Request]] = (),
+        close_if_idle: bool = True,
     ) -> Generator[Deferred, Any, None]:
         if self.slot is not None:
             raise RuntimeError(f"No free spider slot when opening {spider.name!r}")
@@ -380,7 +384,9 @@ class ExecutionEngine:
         self.crawler.stats.open_spider(spider)
         yield self.signals.send_catch_log_deferred(signals.spider_opened, spider=spider)
         self.slot.nextcall.schedule()
-        self.slot.heartbeat.start(self.settings.getfloat("ENGINE_HEARTBEAT_INTERVAL", 5))
+        self.slot.heartbeat.start(
+            self.settings.getfloat("ENGINE_HEARTBEAT_INTERVAL", 5)
+        )
 
     def _spider_idle(self) -> None:
         """

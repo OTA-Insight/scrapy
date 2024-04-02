@@ -47,7 +47,7 @@ class Spider(object_ref):
 
     def labels(self, *args, **kwargs):
         return {
-            'spider': self.name,
+            "spider": self.name,
         }
 
     def log(self, message: Any, level: int = logging.DEBUG, **kw: Any) -> None:
